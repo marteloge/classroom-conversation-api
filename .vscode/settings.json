@@ -1,0 +1,6 @@
+{
+  "python.formatting.provider": "black",
+  "python.pythonPath": "/Users/marteloge/.local/share/virtualenvs/classroom-conversation-api-W9LKblR4/bin/python",
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true
+}
