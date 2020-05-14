@@ -104,5 +104,4 @@ def graphml_to_json(file):
                 "percentage": float(label) if label else 0,
             }
         )
-
-    return json.dumps(out, ensure_ascii=False)
+    return out
