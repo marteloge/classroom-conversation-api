@@ -82,9 +82,9 @@ WSGI_APPLICATION = "classroomconversation.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "classroomconversation",
-        "USER": "ntnu",
-        "PASSWORD": "123456",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
         "HOST": "127.0.0.1",
         "PORT": "5432",
     }
