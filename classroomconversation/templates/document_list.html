@@ -1,0 +1,21 @@
+{% extends 'base.html' %} {% block content %} {% load crispy_forms_tags %}
+
+<table>
+  <tr>
+    <th>Created</th>
+    <th>Name</th>
+    <th>Description</th>
+    <th>File</th>
+    <th>Share</th>
+  </tr>
+  {% for conversation in conversations %}
+  <tr>
+    <td>{{ conversation.created }}</td>
+    <td>{{ conversation.name}}</td>
+    <td>{{ conversation.description}}</td>
+    <td><a href="{{ conversation.document.url }}">File</a></td>
+    <td><a href="/share/{{ conversation.document.uuid }}">Share</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
