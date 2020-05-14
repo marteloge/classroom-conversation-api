@@ -2,11 +2,24 @@ import json
 import uuid
 import xml.etree.ElementTree as ElementTree
 
+from rest_framework import viewsets
+from rest_framework import permissions
+
 from django.shortcuts import render, redirect
 from django.core.files import File
 
 from .forms import ConversationForm
 from .models import Conversation
+from .serializers import ConversationSerializer
+
+
+class ConversationViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+
+    queryset = Conversation.objects.all().order_by("-created")
+    serializer_class = ConversationSerializer
 
 
 def upload_document(request):
