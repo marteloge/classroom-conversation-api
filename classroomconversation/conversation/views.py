@@ -1,9 +1,8 @@
-import json
 import uuid
 import xml.etree.ElementTree as ElementTree
 
+from rest_framework.permissions import AllowAny
 from rest_framework import viewsets
-from rest_framework import permissions
 
 from django.shortcuts import render, redirect
 from django.core.files import File
@@ -12,16 +11,15 @@ from .forms import ConversationForm
 from .models import Conversation
 from .serializers import ConversationSerializer
 
-
-class ConversationViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-
-    queryset = Conversation.objects.all().order_by("-created")
+### API ###
+class ConversationDetailAPIView(viewsets.ReadOnlyModelViewSet):
+    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    permission_classes = [AllowAny]
+    lookup_field = "uuid"
 
 
+### FILE UPLOADER ###
 def upload_document(request):
     if request.method == "POST":
         form = ConversationForm(request.POST, request.FILES)
