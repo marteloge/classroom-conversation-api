@@ -42,10 +42,10 @@ def document_list(request):
     return render(request, "document_list.html", {"conversations": conversations})
 
 
-#### HELPES ####
+#### HELPERS ####
 
 
-def graphml_to_json(file, uniformProbability):
+def graphml_to_json(file, uniform_probability):
     graphml = {
         "graph": "{http://graphml.graphdrawing.org/xmlns}graph",
         "key": "{http://graphml.graphdrawing.org/xmlns}key",
@@ -73,23 +73,23 @@ def graphml_to_json(file, uniformProbability):
     graph = root.find(graphml.get("graph"))
     nodes = graph.findall(graphml.get("node"))
     out = {
-        "uniformProbability": uniformProbability,
+        "uniformProbability": uniform_probability,
         "start": "",
         "end": "",
-        "question": {},
-        "answer": {},
+        "questions": {},
+        "answers": {},
     }
 
     ## node kan have different data elements.
-    nodeDataKeyId = ""
+    data_key_id = ""
 
     for key in root.findall(graphml.get("key")):
         if key.get("yfiles.type") and key.get("yfiles.type") == "nodegraphics":
-            nodeDataKeyId = key.get("id")
+            data_key_id = key.get("id")
 
     for node in nodes:
         nodeid = node.get("id")
-        data = node.find(graphml.get("data") + "[@key='" + nodeDataKeyId + "']")
+        data = node.find(graphml.get("data") + "[@key='" + data_key_id + "']")
         shapenode = data.find(graphml.get("shapenode"))
 
         if shapenode:
@@ -111,7 +111,7 @@ def graphml_to_json(file, uniformProbability):
                     if line:
                         edgelabel = line.find(graphml.get("edgelabel"))
 
-                    if not uniformProbability and edgelabel and edgelabel.text:
+                    if not uniform_probability and edgelabel and edgelabel.text:
                         try:
                             answers.append(
                                 {"id": target_id, "probability": float(edgelabel.text)}
@@ -121,7 +121,7 @@ def graphml_to_json(file, uniformProbability):
                     else:
                         answers.append({"id": target_id})
 
-                out["question"][nodeid] = {
+                out["questions"][nodeid] = {
                     "id": nodeid,
                     "shape": shape,
                     "label": nodelabel.text if nodelabel else "",
@@ -130,7 +130,7 @@ def graphml_to_json(file, uniformProbability):
             elif shape == "diamond":
                 alternatives = [edge.get("target") for edge in node_edges]
 
-                out["answer"][nodeid] = {
+                out["answers"][nodeid] = {
                     "id": nodeid,
                     "shape": shape,
                     "label": nodelabel.text if nodelabel else "",
