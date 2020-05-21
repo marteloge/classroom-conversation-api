@@ -7,6 +7,8 @@ from rest_framework import viewsets
 from django.shortcuts import render, redirect
 from django.core.files import File
 
+from django.contrib.auth.decorators import login_required, permission_required
+
 from .forms import ConversationForm
 from .models import Conversation
 from .serializers import ConversationSerializer
@@ -19,7 +21,9 @@ class ConversationDetailAPIView(viewsets.ReadOnlyModelViewSet):
     lookup_field = "uuid"
 
 
-### FILE UPLOADER ###
+### VIEWS ###
+@login_required(login_url="/account/login/")
+@permission_required("user.is_staff", raise_exception=True)
 def upload_document(request):
     if request.method == "POST":
         form = ConversationForm(request.POST, request.FILES)
@@ -37,6 +41,8 @@ def upload_document(request):
     return render(request, "upload_document.html", {"form": form})
 
 
+@login_required(login_url="/account/login/")
+@permission_required("user.is_staff", raise_exception=True)
 def document_list(request):
     conversations = Conversation.objects.all().order_by("-created")
     return render(request, "document_list.html", {"conversations": conversations})
