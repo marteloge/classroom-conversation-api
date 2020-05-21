@@ -13,5 +13,7 @@ class Conversation(models.Model):
     updated = models.DateTimeField(auto_now=True)
     uniform_probability = models.BooleanField(default=True)
 
+    ## TODO: will json be reloaded on update?
+
     def __str__(self):
         return str(self.name)
