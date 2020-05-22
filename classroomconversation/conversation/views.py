@@ -13,6 +13,8 @@ from .forms import ConversationForm
 from .models import Conversation
 from .serializers import ConversationSerializer
 
+# TODO: add graph validation on upload
+
 ### API ###
 class ConversationDetailAPIView(viewsets.ReadOnlyModelViewSet):
     queryset = Conversation.objects.all()
@@ -22,6 +24,8 @@ class ConversationDetailAPIView(viewsets.ReadOnlyModelViewSet):
 
 
 ### VIEWS ###
+
+
 @login_required(login_url="/account/login/")
 @permission_required("user.is_staff", raise_exception=True)
 def upload_document(request):
@@ -51,8 +55,8 @@ def document_list(request):
 #### HELPERS ####
 
 
-def graphml_to_json(file, uniform_probability):
-    graphml = {
+def get_graphml():
+    return {
         "graph": "{http://graphml.graphdrawing.org/xmlns}graph",
         "key": "{http://graphml.graphdrawing.org/xmlns}key",
         "node": "{http://graphml.graphdrawing.org/xmlns}node",
@@ -72,6 +76,29 @@ def graphml_to_json(file, uniform_probability):
         "edgelabel": "{http://www.yworks.com/xml/graphml}EdgeLabel",
     }
 
+
+def get_node_label(node, data_key_id):
+    graphml = get_graphml()
+    data = node.find(graphml.get("data") + "[@key='" + data_key_id + "']")
+    shapenode = data.find(graphml.get("shapenode"))
+    labels = shapenode.findall(graphml.get("nodelabel"))
+
+    for label in labels:
+        if label.text and len(label.text.strip()) > 0:
+            return label.text
+    return ""
+
+
+def get_data_key_id(root):
+    graphml = get_graphml()
+    for key in root.findall(graphml.get("key")):
+        if key.get("yfiles.type") and key.get("yfiles.type") == "nodegraphics":
+            return key.get("id")
+    return ""
+
+
+def graphml_to_json(file, uniform_probability):
+    graphml = get_graphml()
     file.seek(0)
     tree = ElementTree.parse(file)
 
@@ -84,28 +111,30 @@ def graphml_to_json(file, uniform_probability):
         "end": "",
         "questions": {},
         "answers": {},
+        "nodes": {},
     }
 
     ## node kan have different data elements.
-    data_key_id = ""
-
-    for key in root.findall(graphml.get("key")):
-        if key.get("yfiles.type") and key.get("yfiles.type") == "nodegraphics":
-            data_key_id = key.get("id")
+    data_key_id = get_data_key_id(root)
 
     for node in nodes:
         nodeid = node.get("id")
         data = node.find(graphml.get("data") + "[@key='" + data_key_id + "']")
         shapenode = data.find(graphml.get("shapenode"))
 
-        if shapenode:
+        if shapenode is not None:
             shape = shapenode.find(graphml.get("shape")).get("type")
-            nodelabel = shapenode.find(graphml.get("nodelabel"))
+
+            nodelabel = get_node_label(node, data_key_id)
 
             node_edges = graph.findall(
                 graphml.get("edge") + "[@source='" + str(nodeid) + "']"
             )
 
+            ## ALL NODES AN THEIR SHAPE
+            out["nodes"][nodeid] = {"id": nodeid, "shape": shape}
+
+            ## SORT NODES BY TYPE
             if shape == "roundrectangle":
                 answers = []
                 for edge in node_edges:
@@ -114,41 +143,61 @@ def graphml_to_json(file, uniform_probability):
                     line = edgedata.find(graphml.get("polyLine"))
                     edgelabel = None
 
+                    answer_node = graph.find(
+                        graphml.get("node") + "[@id='" + target_id + "']"
+                    )
+                    answer_data = answer_node.find(
+                        graphml.get("data") + "[@key='" + data_key_id + "']"
+                    )
+                    answer_shapenode = answer_data.find(graphml.get("shapenode"))
+
+                    shape = (
+                        answer_shapenode.find(graphml.get("shape")).get("type")
+                        if answer_shapenode.find(graphml.get("shape")) is not None
+                        else ""
+                    )
+
                     if line:
                         edgelabel = line.find(graphml.get("edgelabel"))
 
                     if not uniform_probability and edgelabel and edgelabel.text:
                         try:
                             answers.append(
-                                {"id": target_id, "probability": float(edgelabel.text)}
+                                {
+                                    "id": target_id,
+                                    "probability": float(edgelabel.text),
+                                    "shape": shape,
+                                }
                             )
                         except ValueError:
                             pass
                     else:
-                        answers.append({"id": target_id})
+                        answers.append({"id": target_id, "shape": shape})
 
                 out["questions"][nodeid] = {
                     "id": nodeid,
                     "shape": shape,
-                    "label": nodelabel.text if nodelabel else "",
+                    "label": nodelabel,
                     "answers": answers,
                 }
+
             elif shape == "diamond":
                 alternatives = [edge.get("target") for edge in node_edges]
 
                 out["answers"][nodeid] = {
                     "id": nodeid,
                     "shape": shape,
-                    "label": nodelabel.text if nodelabel else "",
+                    "label": nodelabel,
                     "alternatives": alternatives,
                 }
             elif "star" in str(shape):
                 out["start"] = {
                     "id": nodeid,
-                    "label": nodelabel.text if nodelabel else "",
+                    "label": nodelabel,
                     "type": shape,
                     "firstQuestion": node_edges[0].get("target"),
                 }
             elif shape == "octagon":
                 out["end"] = nodeid
+
     return out
