@@ -13,7 +13,13 @@
     <td>{{ conversation.name}}</td>
     <td>{{ conversation.description}}</td>
     <td><a href="{{ conversation.document.url }}">File</a></td>
-    <td><a href="/share/{{ conversation.document.uuid }}">Share</a></td>
+    <td>
+      <a
+        target="_blank"
+        href="localhost:3000/conversation/{{ conversation.uuid }}/start"
+        >Start</a
+      >
+    </td>
   </tr>
   {% endfor %}
 </table>

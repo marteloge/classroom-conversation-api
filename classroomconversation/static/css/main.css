@@ -13,6 +13,9 @@ table {
 table a {
   color: lightcoral;
 }
+table a:hover {
+  color: lightcoral;
+}
 
 .login,
 .logout {
