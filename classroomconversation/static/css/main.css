@@ -41,3 +41,13 @@ a:hover {
   flex-direction: column;
   margin: 30px 0;
 }
+
+form.change-language {
+  margin: 0;
+}
+
+select {
+  background: transparent;
+  color: lightgray;
+  border: none;
+}

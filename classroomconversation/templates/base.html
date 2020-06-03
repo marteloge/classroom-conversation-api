@@ -1,8 +1,13 @@
 {% load static %}
+{% load i18n %}
+
+{% get_current_language as language %}
+
 <html>
   <head>
     <title>Digitalt klasserom</title>
     <meta charset="utf-8" />
+    
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
@@ -30,6 +35,13 @@
       integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
       crossorigin="anonymous"
     ></script>
+
+    <script>
+      function changeLanguage() {
+        $("#language-button").click();
+      }
+    </script>
+
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
   </head>
   <body>
@@ -39,23 +51,41 @@
         <a
           class="nav-item nav-link {% if request.get_full_path == '/upload/list' %}active{% endif %}"
           href="/upload/list"
-          >Conversations</a
+          >{% trans "navigation.conversation" %}</a
         >
         <a
           class="nav-item nav-link {% if request.get_full_path == '/upload' %}active{% endif %}"
           href="/upload"
-          >Upload</a
+          >{% trans "navigation.upload" %}</a
         >
       </div>
+
+      <form class="change-language" action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ redirect_to }}" />
+        <select name="language" onchange="changeLanguage();">
+            {% get_current_language as LANGUAGE_CODE %}
+            {% get_available_languages as LANGUAGES %}
+            {% get_language_info_list for LANGUAGES as languages %}
+            {% for language in languages %}
+                <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+                    {{ language.name_local }}
+                </option>
+            {% endfor %}
+        </select>
+        <button hidden id="language-button" type="submit">{% trans "form.label.button.language" %}</button>
+      </form>
+
       <div>
         {% if user.is_authenticated %}
-        <span class="navbar-text">Hello {{ user.username}}!</span>
-        <a class="login" href="/account/logout">Logout</a>
+          <span class="navbar-text">{% trans "profile.hello" %} {{ user.username}}!</span>
+          <a class="login" href="/account/logout">Logout</a>
         {% else %}
-        <a class="logout" href="/account/login">Login</a>
+          <a class="logout" href="/account/login">Login</a>
         {% endif %}
       </div>
     </nav>
+
     <div class="container">
       <div class="content">{% block content %} {% endblock %}</div>
     </div>

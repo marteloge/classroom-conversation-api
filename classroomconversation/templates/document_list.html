@@ -1,23 +1,28 @@
-{% extends 'base.html' %} {% block content %} {% load crispy_forms_tags %}
+{% extends 'base.html' %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
 <table class="uploads table">
   <tr>
-    <th>Created</th>
-    <th>Name</th>
-    <th>Description</th>
-    <th>File</th>
-    <th>Share</th>
+    <th>{% trans "table.label.date" %}</th>
+    <th>{% trans "table.label.name" %}</th>
+    <th>{% trans "table.label.description" %}</th>
+    <th>{% trans "table.label.file" %}</th>
+    <th>{% trans "table.label.share" %}</th>
   </tr>
   {% for conversation in conversations %}
   <tr>
     <td>{{ conversation.created }}</td>
     <td>{{ conversation.name}}</td>
     <td>{{ conversation.description}}</td>
-    <td><a href="{{ conversation.document.url }}">File</a></td>
+    <td><a href="{{ conversation.document.url }}">{% trans "table.action.download" %}</a></td>
     <td>
       <a
         target="_blank"
         href="localhost:3000/conversation/{{ conversation.uuid }}/start"
-        >Start</a
+        >{%trans "table.action.start" %}</a
       >
     </td>
   </tr>

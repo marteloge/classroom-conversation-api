@@ -1,3 +1,6 @@
-{% extends 'base.html' %} {% block content %}
-<h1>Du har ikke de riktige tilgangene</h1>
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+  <h1>{% trans "403" %}</h1>
 {% endblock %}
